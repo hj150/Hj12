@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe with Music</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            color: white;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .cell:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .cell.taken {
+            pointer-events: none;
+            transform: scale(1);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #winner {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #00ff99;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            background: #00c6ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        button:hover {
+            background: #0072ff;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic-Tac-Toe</h1>
+    <div class="board" id="board"></div>
+    <div id="winner"></div>
+    <button onclick="resetGame()">Restart Game</button>
+
+    <!-- Background Music -->
+    <audio id="backgroundMusic" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-energy.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Click Sound -->
+    <audio id="clickSound">
+        <source src="https://www.soundjay.com/button/button-3.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const board = document.getElementById('board');
+        const winnerDisplay = document.getElementById('winner');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const clickSound = document.getElementById('clickSound');
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let boardState = ['', '', '', '', '', '', '', '', ''];
+
+        // Play background music on load
+        window.onload = () => {
+            backgroundMusic.volume = 0.2;
+            backgroundMusic.play();
+        };
+
+        // Create board cells
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.index = i;
+            cell.addEventListener('click', handleCellClick);
+            board.appendChild(cell);
+        }
+
+        function handleCellClick(event) {
+            const cell = event.target;
+            const index = cell.dataset.index;
+
+            if (boardState[index] !== '' || !gameActive) return;
+
+            boardState[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.classList.add('taken');
+
+            // Play click sound
+            clickSound.volume = 0.5;
+            clickSound.play();
+
+            if (checkWinner()) {
+                winnerDisplay.textContent = `Player ${currentPlayer} Wins! 🎉`;
+                gameActive = false;
+            } else if (boardState.every(cell => cell !== '')) {
+                winnerDisplay.textContent = "It's a Draw! 🤝";
+                gameActive = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            }
+        }
+
+        function checkWinner() {
+            const winningCombinations = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+
+            return winningCombinations.some(combination => {
+                const [a, b, c] = combination;
+                return boardState[a] === currentPlayer &&
+                       boardState[a] === boardState[b] &&
+                       boardState[a] === boardState[c];
+            });
+        }
+
+        function resetGame() {
+            currentPlayer = 'X';
+            gameActive = true;
+            boardState = ['', '', '', '', '', '', '', '', ''];
+            winnerDisplay.textContent = '';
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('taken');
+            });
+        }
+    </script>
+</body>
+</html>
